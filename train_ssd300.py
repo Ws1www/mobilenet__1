@@ -10,51 +10,16 @@ import train_utils.train_eval_utils as utils
 from train_utils import get_coco_api_from_dataset
 
 
-def create_model(num_classes=21):
+def create_model(num_classes=21, pre_ssd_path=None):
     # https://download.pytorch.org/models/resnet50-19c8e357.pth
     # pre_train_path = "./src/resnet50.pth"
     backbone = Backbone()
     model = SSD300(backbone=backbone, num_classes=num_classes)
 
-    # https://ngc.nvidia.com/catalog/models -> search ssd -> download FP32
-    pre_ssd_path = "src/mobilenet_v3_large.pth"
-    if os.path.exists(pre_ssd_path) is False:
-        raise FileNotFoundError("nvidia_ssdpyt_fp32.pt not find in {}".format(pre_ssd_path))
-    pre_model_dict = torch.load(pre_ssd_path, map_location='cpu')
-    pre_weights_dict = pre_model_dict['model']
-
-    # 删除类别预测器权重，注意，回归预测器的权重可以重用，因为不涉及num_classes
-    del_conf_loc_dict = {}
-    for k, v in pre_weights_dict.items():
-        split_key = k.split(".")
-        if "avgpool" in split_key or "classifier" in split_key:
-            continue
-        del_conf_loc_dict.update({k: v})
-
-    missing_keys, unexpected_keys = model.load_state_dict(del_conf_loc_dict, strict=False)
-    if len(missing_keys) != 0 or len(unexpected_keys) != 0:
-        print("missing_keys: ", missing_keys)
-        print("unexpected_keys: ", unexpected_keys)
-
-    # pre_ssd_path = "src/nvidia_ssdpyt_fp32_190826.pt"
-    # if os.path.exists(pre_ssd_path) is False:
-    #     raise FileNotFoundError("nvidia_ssdpyt_fp32.pt not find in {}".format(pre_ssd_path))
-    # pre_model_dict = torch.load(pre_ssd_path, map_location='cpu')
-    # pre_weights_dict = pre_model_dict['model']
-    #
-    # # 删除类别预测器权重，注意，回归预测器的权重可以重用，因为不涉及num_classes
-    # del_conf_loc_dict = {}
-    # for k, v in pre_weights_dict.items():
-    #     split_key = k.split(".")
-    #     if "conf" in split_key or "additional_blocks.0" in split_key:
-    #         continue
-    #     del_conf_loc_dict.update({k: v})
-    #
-    # missing_keys, unexpected_keys = model.load_state_dict(del_conf_loc_dict, strict=False)
-    # if len(missing_keys) != 0 or len(unexpected_keys) != 0:
-    #     print("missing_keys: ", missing_keys)
-    #     print("unexpected_keys: ", unexpected_keys)
-
+    if pre_ssd_path:
+        pre_model_dict = torch.load(pre_ssd_path, map_location='cpu')
+        pre_weights_dict = pre_model_dict['model']
+        model.load_state_dict(pre_weights_dict, strict=False)
 
     return model
 
@@ -111,7 +76,7 @@ def main(parser_data):
                                                   num_workers=nw,
                                                   collate_fn=train_dataset.collate_fn)
 
-    model = create_model(num_classes=args.num_classes+1)
+    model = create_model(num_classes=args.num_classes+1, pre_ssd_path=args.pretrained_path)
     model.to(device)
 
     # define optimizer
@@ -203,12 +168,13 @@ if __name__ == '__main__':
     # 指定接着从哪个epoch数开始训练
     parser.add_argument('--start_epoch', default=0, type=int, help='start epoch')
     # 训练的总epoch数
-    parser.add_argument('--epochs', default=2, type=int, metavar='N',
+    parser.add_argument('--epochs', default=50, type=int, metavar='N',
                         help='number of total epochs to run')
     # 训练的batch size
     parser.add_argument('--batch_size', default=4, type=int, metavar='N',
                         help='batch size when training.')
 
+    parser.add_argument('--pretrained_path', default='', help='pretrained_path')
     args = parser.parse_args()
     print(args)
 
