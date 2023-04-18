@@ -160,9 +160,9 @@ if __name__ == '__main__':
     # 检测的目标类别个数，不包括背景
     parser.add_argument('--num_classes', default=20, type=int, help='num_classes')
     # 训练数据集的根目录(VOCdevkit)
-    parser.add_argument('--data-path', default=r'C:\Users\25360\Desktop\ssd\yg', help='dataset')
+    parser.add_argument('--data-path', default=r'/kaggle/input/yg1234/yg', help='dataset')
     # 文件保存地址
-    parser.add_argument('--output-dir', default='./save_weights', help='path where to save')
+    parser.add_argument('--output-dir', default='/kaggle/working/', help='path where to save')
     # 若需要接着上次训练，则指定上次训练保存权重文件地址
     parser.add_argument('--resume', default='', type=str, help='resume from checkpoint')
     # 指定接着从哪个epoch数开始训练
@@ -174,7 +174,7 @@ if __name__ == '__main__':
     parser.add_argument('--batch_size', default=4, type=int, metavar='N',
                         help='batch size when training.')
 
-    parser.add_argument('--pretrained_path', default='', help='pretrained_path')
+    parser.add_argument('--pretrained_path', default='/kaggle/input/mobile-net-1/ssd300-14.pth', help='pretrained_path')
     args = parser.parse_args()
     print(args)
 
