@@ -174,7 +174,7 @@ if __name__ == '__main__':
     parser.add_argument('--batch_size', default=4, type=int, metavar='N',
                         help='batch size when training.')
 
-    parser.add_argument('--pretrained_path', default='/kaggle/input/mobile-net-1/ssd300-14.pth', help='pretrained_path')
+    parser.add_argument('--pretrained_path', default='/kaggle/input/ssd-49/ssd300-49.pth', help='pretrained_path')
     args = parser.parse_args()
     print(args)
 
